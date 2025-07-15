@@ -39,11 +39,24 @@ class SAPQueryAssistant:
         
         # Common SAP B1 table mappings with schema
         self.table_mappings = {
-            "sales": [f"{self.schema}.OINV", f"{self.schema}.INV1", f"{self.schema}.OITM"],
+            "sales": [f"{self.schema}.OINV", f"{self.schema}.INV1", f"{self.schema}.OITM", f"{self.schema}.ORIN", f"{self.schema}.RIN1"],
             "inventory": [f"{self.schema}.OITM", f"{self.schema}.OITW", f"{self.schema}.OITB"],
             "customers": [f"{self.schema}.OCRD", f"{self.schema}.OCPR"],
             "purchases": [f"{self.schema}.OPOR", f"{self.schema}.POR1"],
-            "financial": [f"{self.schema}.OJDT", f"{self.schema}.JDT1"]
+            "financial": [f"{self.schema}.OJDT", f"{self.schema}.JDT1"],
+            "brands": [f"{self.schema}.OITB"],
+            "item_categories": [f"{self.schema}.OITC"],
+            "item_groups": [f"{self.schema}.OITG"],
+            "item_locations": [f"{self.schema}.OITL"],
+            "items": [f"{self.schema}.OITM"],
+            "warehouses": [f"{self.schema}.OITW"],
+            "employees": [f"{self.schema}.OHEM"],
+            "customers": [f"{self.schema}.OCRD"],
+            "projects": [f"{self.schema}.OPRJ"],
+            "journal_entries": [f"{self.schema}.OJDT"],
+            "journal_entry_lines": [f"{self.schema}.JDT1"],
+            "business_partners": [f"{self.schema}.OCRD"],
+            "item_categories": [f"{self.schema}.OITC"],
         }
 
     def _get_db_connection(self):
@@ -91,11 +104,31 @@ class SAPQueryAssistant:
         Query: {query}
         
         Choose from: table, bar_chart, line_chart, pie_chart
-        Consider:
-        - Use bar_chart for comparing quantities or rankings
-        - Use line_chart for trends over time
-        - Use pie_chart for showing proportions
-        - Use table for detailed data or when no clear visualization preference
+        
+        Consider these specific rules:
+        1. Use line_chart when the query mentions:
+           - Time periods (days, months, years)
+           - Trends, growth, or changes over time
+           - Historical data
+           - Words like 'trend', 'over time', 'history', 'growth'
+        
+        2. Use bar_chart when the query mentions:
+           - Comparisons between categories
+           - Rankings or top/bottom items
+           - Aggregations by category
+           - Words like 'top', 'bottom', 'compare', 'by category'
+        
+        3. Use pie_chart when the query mentions:
+           - Proportions or percentages
+           - Distribution of a whole
+           - Market share
+           - Words like 'distribution', 'percentage', 'share', 'proportion'
+        
+        4. Use table when:
+           - Detailed data is needed
+           - Multiple dimensions are involved
+           - No clear visualization preference
+           - Raw data is requested
         
         Return only the visualization type.
         """
@@ -117,21 +150,41 @@ class SAPQueryAssistant:
             Question: {query}
 
             Requirements:
-            1. Use proper SAP B1 table names and relationships
-            2. Include necessary JOINs
-            3. Apply appropriate WHERE clauses
-            4. Use SAP HANA specific functions
-            5. Optimize for performance
-            6. Always prefix table names with schema '{self.schema}'
-            7. **Always enclose identifiers (table names, column names) in double quotes to respect case-sensitivity**
+            1. Use proper SAP B1 table names and their documented relationships.
+            2. Always include necessary JOINs between related tables (e.g., OINV with INV1, OCRD, etc.).
+            3. Apply appropriate WHERE clauses based on user input or use-case.
+            4. Use SAP HANA-specific SQL functions and syntax (e.g., TO_NVARCHAR(), CURRENT_DATE, etc.).
+            5. Optimize queries for performance — avoid unnecessary subqueries, use indexes where applicable.
+            6. Always prefix all table names with the provided schema: {self.schema}
+            7. Strictly enclose all identifiers (table names, column names) in double quotes to maintain case sensitivity.
+            8. ❌ NEVER create procedures or queries that perform CREATE, DELETE, or INSERT operations.
+            9. If asked to perform create, delete, or insert operations, return the response:
+                ERROR: Operation not allowed. This assistant only supports read-only SELECT queries.
+            10. If the query is related to cancelled journal entries, check the "JDT1" table and the "Closed" column.
+
 
             Common tables:
             - "{self.schema}"."OINV": Sales Invoices
+            - "{self.schema}"."ORIN": Credit Memos
             - "{self.schema}"."INV1": Invoice Lines
+            - "{self.schema}"."RIN1": Credit Memo Lines
             - "{self.schema}"."OITM": Items
             - "{self.schema}"."OCRD": Business Partners
             - "{self.schema}"."OPRJ": Projects
             - "{self.schema}"."OJDT": Journal Entries
+            - "{self.schema}"."OCRD": Business Partners
+            - "{self.schema}"."OITB": Brands
+            - "{self.schema}"."OITW": Warehouses
+            - "{self.schema}"."OITC": Item Categories
+            - "{self.schema}"."OITG": Item Groups
+            - "{self.schema}"."OITL": Item Locations
+            - "{self.schema}"."OITM": Items
+            - "{self.schema}"."OHEM": Employees
+            - "{self.schema}"."OPRJ": Projects
+            - "{self.schema}"."OJDT": Journal Entries
+            - "{self.schema}"."JDT1": Journal Entry Lines
+            - "{self.schema}"."OCRD": Business Partners
+            - "{self.schema}"."OITC": Item Categories
 
             Return only the SQL query.
             """
