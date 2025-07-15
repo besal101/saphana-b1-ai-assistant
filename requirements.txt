@@ -1,0 +1,10 @@
+openai>=1.0.0
+python-dotenv>=0.19.0
+fastapi>=0.68.0
+uvicorn>=0.15.0
+pydantic>=1.8.2
+python-jose>=3.3.0
+passlib>=1.7.4
+python-multipart>=0.0.5
+hdbcli>=2.18.0
+pandas>=1.5.0 
